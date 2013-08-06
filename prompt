@@ -1,0 +1,41 @@
+#!/bin/zsh
+
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$(tput bold)$(tput setaf 1)%}!"
+ZSH_THEME_GIT_PROMPT_CLEAN=""
+
+function username_prompt_info {
+	if [ "`id -u`" -eq 0 ]; then
+		echo "%{[34m%}%n%{[33m%}"
+	else
+		echo "%{[31m%}%n%{[33m%}"
+	fi
+}
+
+function git_pretty_prompt_info {
+	local info=$(git_prompt_info)
+
+	if [ "$info" != "" ]; then
+		local subinfo="$(echo "$info" | cut -d / -f 2)"
+		local reset_colors="%{$(tput sgr0)$(tput bold)$(tput setaf 2)%}"
+
+		echo -n "%{$(tput sgr0)%}{"
+
+		if echo "$info" | grep -q '^feature/'; then
+			echo -n "%{$(tput setaf 5)%}f/%{$(tput bold)%}$subinfo"
+		elif echo "$info" | grep -q '^release/'; then
+			echo -n "%{$(tput setaf 2)%}r/%{$(tput bold)%}$subinfo"
+		elif echo "$info" | grep -q '^hotfix/'; then
+			echo -n "%{$(tput setaf 1)%}h/%{$(tput bold)%}$subinfo"
+		elif echo "$info" | grep -Eq '^master'; then
+			echo -n "%{$(tput setaf 6)$(tput bold)%}$subinfo"
+		elif echo "$info" | grep -Eq '^develop'; then
+			echo -n "%{$(tput setaf 3)$(tput bold)%}$subinfo"
+		else
+			echo -n "%{$(tput setaf 1)%}$info"
+		fi
+
+		echo -n "%{$(tput sgr0)%}}$reset_colors "
+	fi
+}
+
+export PROMPT="$(virtualenv_prompt_info)%{[36;1m%}%T $(username_prompt_info)@%{[37m%}%m %{[32m%}%~ $(git_pretty_prompt_info)%{[33m%}%#%{[0m%} "
